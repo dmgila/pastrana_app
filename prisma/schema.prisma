@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  COACH
+  ATHLETE
+}
+
+enum WorkoutStatus {
+  DRAFT
+  PUBLISHED
+  COMPLETED
+  SKIPPED
+}
+
+model User {
+  id              String            @id @default(cuid())
+  role            UserRole
+  fullName        String
+  email           String            @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  athletes        AthleteProfile[]  @relation("CoachAthletes")
+  athleteProfile  AthleteProfile?
+  templates       WorkoutTemplate[] @relation("CoachTemplates")
+}
+
+model AthleteProfile {
+  id           String       @id @default(cuid())
+  userId       String       @unique
+  coachId      String
+  displayName  String
+  notes        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  user         User         @relation(fields: [userId], references: [id])
+  coach        User         @relation("CoachAthletes", fields: [coachId], references: [id])
+  weeklyPlans  WeeklyPlan[]
+}
+
+model WorkoutTemplate {
+  id               String           @id @default(cuid())
+  coachId          String
+  name             String
+  category         String
+  summary          String
+  defaultNotes     String?
+  defaultStructure String?
+  defaultDuration  Int?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  coach            User             @relation("CoachTemplates", fields: [coachId], references: [id])
+  plannedWorkouts  PlannedWorkout[]
+
+  @@unique([coachId, name])
+}
+
+model WeeklyPlan {
+  id               String          @id @default(cuid())
+  athleteProfileId String
+  weekStart        DateTime
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  athleteProfile   AthleteProfile  @relation(fields: [athleteProfileId], references: [id])
+  plannedWorkouts  PlannedWorkout[]
+
+  @@unique([athleteProfileId, weekStart])
+}
+
+model PlannedWorkout {
+  id                String           @id @default(cuid())
+  weeklyPlanId      String
+  workoutTemplateId String?
+  workoutDate       DateTime
+  dayOfWeek         Int
+  title             String
+  summary           String
+  notes             String?
+  structure         String?
+  durationMinutes   Int?
+  status            WorkoutStatus    @default(DRAFT)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  weeklyPlan        WeeklyPlan       @relation(fields: [weeklyPlanId], references: [id], onDelete: Cascade)
+  workoutTemplate   WorkoutTemplate? @relation(fields: [workoutTemplateId], references: [id])
+  feedback          WorkoutFeedback?
+
+  @@unique([weeklyPlanId, dayOfWeek])
+}
+
+model WorkoutFeedback {
+  id               String         @id @default(cuid())
+  plannedWorkoutId String         @unique
+  completed        Boolean
+  rpe              Int
+  comment          String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  plannedWorkout   PlannedWorkout @relation(fields: [plannedWorkoutId], references: [id], onDelete: Cascade)
+}
