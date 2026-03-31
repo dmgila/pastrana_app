@@ -1,8 +1,8 @@
 "use server";
 
+import { Prisma, WorkoutStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { addDays, parseISO, startOfWeek } from "date-fns";
-import { WorkoutStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 function getWeekStartDate(rawDate: string) {
@@ -24,6 +24,55 @@ function buildWorkoutTitle(structure: string, fallbackTitle: string) {
   }
 
   return fallbackTitle;
+}
+
+export async function createWorkoutTemplate(
+  _previousState: { status: "idle" | "success" | "error"; message?: string },
+  formData: FormData,
+): Promise<{ status: "idle" | "success" | "error"; message?: string }> {
+  const coachId = String(formData.get("coachId") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
+  const category = String(formData.get("category") ?? "").trim();
+  const summary = String(formData.get("summary") ?? "").trim();
+  const defaultStructure = String(formData.get("defaultStructure") ?? "").trim();
+  const defaultDurationRaw = String(formData.get("defaultDuration") ?? "").trim();
+
+  if (!coachId) {
+    return { status: "error", message: "No se encontro el coach." };
+  }
+
+  if (!name || !category || !summary) {
+    return { status: "error", message: "Nombre, categoria y resumen son obligatorios." };
+  }
+
+  const parsedDuration = defaultDurationRaw ? Number(defaultDurationRaw) : undefined;
+
+  if (parsedDuration !== undefined && (!Number.isInteger(parsedDuration) || parsedDuration < 0)) {
+    return { status: "error", message: "Los km deben ser un numero entero igual o mayor que 0." };
+  }
+
+  try {
+    await prisma.workoutTemplate.create({
+      data: {
+        coachId,
+        name,
+        category,
+        summary,
+        defaultStructure: defaultStructure || null,
+        defaultDuration: parsedDuration ?? null,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return { status: "error", message: "Ya existe un entrenamiento con ese nombre." };
+    }
+
+    return { status: "error", message: "No se pudo guardar el entrenamiento." };
+  }
+
+  revalidatePath("/coach");
+
+  return { status: "success", message: "Entrenamiento creado. Ya lo tienes disponible en el selector." };
 }
 
 export async function saveWorkoutDraft(formData: FormData) {
