@@ -15,6 +15,7 @@ type Props = {
 
 export function CoachDayCard({ athleteProfileId, weekStart, day, templates }: Props) {
   const blocks = parseWorkoutStructure(day.structure);
+  const hasPreview = blocks.length || day.durationMinutes != null || day.notes;
 
   return (
     <Card className="space-y-4">
@@ -23,14 +24,10 @@ export function CoachDayCard({ athleteProfileId, weekStart, day, templates }: Pr
         {day.status ? <StatusBadge status={day.status} /> : null}
       </div>
 
-      {day.title ? (
+      {hasPreview ? (
         <div className="rounded-3xl bg-[color:var(--surface-strong)] p-3 text-sm">
-          <p className="font-semibold">{day.title}</p>
-          <p className="mt-1 text-[color:var(--muted)]">
-            {day.durationMinutes ? `${day.durationMinutes} km` : "Duracion libre"}
-          </p>
           {blocks.length ? (
-            <div className="mt-3 space-y-2">
+            <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">Bloques</p>
               {blocks.map((block, index) => (
                 <p key={`${block}-${index}`} className="rounded-2xl bg-white px-3 py-2 text-[color:var(--foreground)]">
@@ -39,6 +36,11 @@ export function CoachDayCard({ athleteProfileId, weekStart, day, templates }: Pr
               ))}
             </div>
           ) : null}
+
+          <p className={blocks.length ? "mt-3 text-[color:var(--muted)]" : "text-[color:var(--muted)]"}>
+            {day.durationMinutes != null ? `${day.durationMinutes} km` : "Duracion libre"}
+          </p>
+
           {day.notes ? <p className="mt-3 text-[color:var(--muted)]">{day.notes}</p> : null}
         </div>
       ) : null}
