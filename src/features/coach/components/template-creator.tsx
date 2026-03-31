@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { createWorkoutTemplate } from "@/features/coach/actions";
@@ -22,6 +23,7 @@ const initialState: TemplateActionState = {
 
 export function TemplateCreator({ coachId, templates }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [state, formAction] = useActionState<TemplateActionState, FormData>(createWorkoutTemplate, initialState);
 
   const categoryOptions = Array.from(new Set(templates.map((template) => template.category))).sort((a, b) =>
@@ -31,17 +33,28 @@ export function TemplateCreator({ coachId, templates }: Props) {
   useEffect(() => {
     if (state.status === "success") {
       formRef.current?.reset();
+      setIsOpen(false);
     }
   }, [state.status]);
 
+  if (!isOpen) {
+    return (
+      <Button className="w-full" type="button" onClick={() => setIsOpen(true)}>
+        Nuevo entrenamiento
+      </Button>
+    );
+  }
+
   return (
     <Card className="space-y-4">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--muted)]">Biblioteca</p>
-        <h2 className="mt-2 text-xl font-semibold">Nuevo entrenamiento</h2>
-        <p className="mt-1 text-sm text-[color:var(--muted)]">
-          Crea un template reusable para que aparezca en el selector de bloques del coach.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--muted)]">Biblioteca</p>
+          <h2 className="mt-2 text-xl font-semibold">Nuevo entrenamiento</h2>
+        </div>
+        <Button type="button" variant="ghost" className="min-h-9 rounded-2xl px-3" onClick={() => setIsOpen(false)}>
+          Cerrar
+        </Button>
       </div>
 
       <form ref={formRef} action={formAction} className="space-y-3">
@@ -84,28 +97,16 @@ export function TemplateCreator({ coachId, templates }: Props) {
           />
         </label>
 
-        <div className="grid grid-cols-[1fr_104px] gap-3">
-          <label className="block space-y-2">
-            <span className="text-sm font-medium">Estructura por defecto</span>
-            <textarea
-              name="defaultStructure"
-              rows={4}
-              placeholder={"Calentamiento 4K\n5x1000 vivo / 90s suave\n1K vuelta a la calma"}
-              className="w-full rounded-2xl border border-[color:var(--line)] bg-white px-3 py-3"
-            />
-          </label>
-
-          <label className="block space-y-2">
-            <span className="text-sm font-medium">Km</span>
-            <input
-              name="defaultDuration"
-              type="number"
-              min="0"
-              placeholder="10"
-              className="min-h-11 w-full rounded-2xl border border-[color:var(--line)] bg-white px-3"
-            />
-          </label>
-        </div>
+        <label className="block space-y-2">
+          <span className="text-sm font-medium">Km</span>
+          <input
+            name="defaultDuration"
+            type="number"
+            min="0"
+            placeholder="10"
+            className="min-h-11 w-full rounded-2xl border border-[color:var(--line)] bg-white px-3"
+          />
+        </label>
 
         {state.message ? (
           <p
@@ -117,22 +118,6 @@ export function TemplateCreator({ coachId, templates }: Props) {
 
         <SubmitButton className="w-full" idleLabel="Guardar entrenamiento" pendingLabel="Guardando entrenamiento..." />
       </form>
-
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">
-          Templates disponibles: {templates.length}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {templates.slice(0, 8).map((template) => (
-            <span
-              key={template.id}
-              className="rounded-full bg-[color:var(--surface-strong)] px-3 py-1 text-xs font-medium text-[color:var(--accent-strong)]"
-            >
-              {template.name}
-            </span>
-          ))}
-        </div>
-      </div>
     </Card>
   );
 }
