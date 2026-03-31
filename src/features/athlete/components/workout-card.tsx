@@ -6,16 +6,12 @@ import { DayCardItem } from "@/types/domain";
 
 export function AthleteWorkoutCard({ athleteId, day }: { athleteId: string; day: DayCardItem }) {
   const blocks = parseWorkoutStructure(day.structure).slice(0, 3);
-  const showTitle = Boolean(day.title && day.title !== "Sesion compuesta");
 
   return (
     <Link href={`/athlete/${athleteId}/workouts/${day.workoutId}`}>
       <Card className="space-y-3">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold">{day.dateLabel}</p>
-            {showTitle ? <h3 className="mt-1 text-lg font-semibold">{day.title}</h3> : null}
-          </div>
+          <p className="text-sm font-semibold">{day.dateLabel}</p>
           {day.status ? <StatusBadge status={day.status} /> : null}
         </div>
 
