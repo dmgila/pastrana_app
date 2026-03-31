@@ -1,5 +1,5 @@
 import { publishDraftWeek } from "@/features/coach/actions";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { CoachDayCard } from "./day-card";
 import { CoachDashboardData } from "../types";
 
@@ -19,9 +19,11 @@ export function CoachWeekList({ data }: { data: CoachDashboardData }) {
         <form action={publishDraftWeek} className="mt-4">
           <input type="hidden" name="athleteProfileId" value={selectedAthlete.id} />
           <input type="hidden" name="weekStart" value={data.weekStart} />
-          <Button className="w-full bg-white !text-[color:var(--accent-strong)]" type="submit">
-            Publicar todos los borradores
-          </Button>
+          <SubmitButton
+            className="w-full bg-white !text-[color:var(--accent-strong)]"
+            idleLabel="Publicar todos los borradores"
+            pendingLabel="Publicando semana..."
+          />
         </form>
       </div>
 

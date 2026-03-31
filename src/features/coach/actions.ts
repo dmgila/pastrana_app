@@ -23,7 +23,7 @@ function buildWorkoutTitle(structure: string, fallbackTitle: string) {
     return blocks[0];
   }
 
-  return "Sesion compuesta";
+  return fallbackTitle;
 }
 
 export async function saveWorkoutDraft(formData: FormData) {

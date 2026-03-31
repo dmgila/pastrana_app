@@ -1,6 +1,6 @@
 import { saveWorkoutDraft, publishWorkoutDay } from "@/features/coach/actions";
 import { StatusBadge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card } from "@/components/ui/card";
 import { parseWorkoutStructure } from "@/lib/workout-structure";
 import { DayCardItem, TemplateOption } from "@/types/domain";
@@ -85,17 +85,22 @@ export function CoachDayCard({ athleteProfileId, weekStart, day, templates }: Pr
           </label>
         </div>
 
-        <Button className="w-full" type="submit">
-          {day.title ? "Guardar cambios en borrador" : "Anadir entrenamiento"}
-        </Button>
+        <SubmitButton
+          className="w-full"
+          idleLabel={day.title ? "Guardar cambios en borrador" : "Anadir entrenamiento"}
+          pendingLabel="Guardando..."
+        />
       </form>
 
       {day.workoutId ? (
         <form action={publishWorkoutDay}>
           <input type="hidden" name="workoutId" value={day.workoutId} />
-          <Button className="w-full" type="submit" variant="secondary">
-            Publicar este dia
-          </Button>
+          <SubmitButton
+            className="w-full"
+            variant="secondary"
+            idleLabel="Publicar este dia"
+            pendingLabel="Publicando..."
+          />
         </form>
       ) : null}
     </Card>
